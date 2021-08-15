@@ -49,12 +49,13 @@ def get_image_area(image):
     #self-explanatory
 
 def calculate_proportion_thresholded(image):
-    thresholded=get_number_of_thresholded_pixels(image)[0]
+    thresholded=get_number_of_thresholded_pixels(image)[1]
     area=get_image_area(image)
     percent=(thresholded/area)
     return percent
     #combines input from previous functions to give a decimal representing the proportion of thresholded pixels
-    #change 0 to a 1 to get the number of unthresholded pixels, and the 2 outputs should add up to 1.
+    #change 1 to 0 to get the number of thresholded pixels, and the 2 outputs should add up to 1.
+    #closer to 1 is better
 print(calculate_proportion_thresholded(masked_thresh))
 cv.imshow("thresh", masked_thresh)
 cv.imshow("image", masked_img)
@@ -62,16 +63,7 @@ cv.imshow("image", masked_img)
 
 
 
-# TODO: transform circles above a certain radius threshold into mask over blank
-# DONE!
-# TODO: invert mask
-# DONE!
-# TODO: figure out how to determine if a pixel is black or white in a looping function
-# DONE!
-# TODO: detect total area covered by pixels above a certain brightness threshold using looping fxn above (1=x, 0=y)
-# DONE!
-# TODO: divide by total number of pixels in that image
-# DONE!
+
 # TODO: figure out how to deal with the rectangles deposited on the sides. Try masking over them (hough transform method?)
 # may not be necessary
 # TODO: Maybe: set min r=20, max r=20 and fit a masking circle to the center circle using another hough loop. Detect if all the pixels within the mask are green somehow to verify that it's right?
