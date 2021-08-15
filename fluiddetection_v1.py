@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-img=cv.imread("image_name")
+img=cv.imread("testslide.jpg")
 blank=np.zeros(img.shape[:2], dtype="uint8")
 blank2=blank.copy()
 b,g,r= cv.split(img)
