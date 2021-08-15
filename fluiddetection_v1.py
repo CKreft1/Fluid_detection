@@ -8,7 +8,6 @@ blank2=blank.copy()
 b,g,r= cv.split(img)
 redthreshold, redthresh=cv.threshold(r, 200, 255, cv.THRESH_BINARY)
 greenthreshold, greenthresh=cv.threshold(g, 200, 255, cv.THRESH_BINARY)
-cv.imshow("image", img)
 
 circles = cv.HoughCircles(greenthresh, cv.HOUGH_GRADIENT,1,20, param1=4,param2=7,minRadius=1,maxRadius=10)
 circles = np.uint16(np.around(circles))
@@ -24,6 +23,8 @@ for i in circles[0,:]:
 mask=cv.bitwise_not(blank)
 masked_thresh=cv.bitwise_and(greenthresh, greenthresh, mask=mask)
 masked_img=cv.bitwise_and(img, img, mask=mask)
+cv.imshow("masked_img", masked_img)
+
 
 def get_number_of_thresholded_pixels(image):
     x=image.shape[1]
