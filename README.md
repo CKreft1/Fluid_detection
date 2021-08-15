@@ -16,4 +16,4 @@ I would also like to use grid detection to make a separate metric that measures 
 
 To use this code, just download the image in main and the v1 code to the same folder, and then run the code using either jupyter or visual studio coding environments. VS works better.
 
-To use it with other images aside from the test image, just change the path name in line 6 to whatever image you want to analyze.
+To use it with other images aside from the test image, just change the path name in line 5 to whatever image you want to analyze. I'm not sure if python can read non-jpg images, so try to limit it to jpgs.
