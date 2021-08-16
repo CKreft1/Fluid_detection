@@ -18,3 +18,5 @@ I would also like to use grid detection to make a separate metric that measures 
 To use this code, just download the image in main and the v1 code to the same folder, and then run the code using either jupyter or visual studio coding environments. VS works better.
 
 To use it with other images aside from the test image, just change the path name in line 5 to whatever image you want to analyze. I'm not sure if python can read non-jpg images, so try to limit it to jpgs.
+
+Edit: Finished v2. It is capable of detecting the larger central bubbles, but because it needs to analyze every pixel of multiple images versus each other using iteration it is much slower, so I am keeping v1 as a relic. Use v1 if there is no central bubble, because it runs in about 1/10 the time of v2.
