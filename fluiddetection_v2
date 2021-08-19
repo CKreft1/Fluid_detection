@@ -3,53 +3,49 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 img=cv.imread("Photos/testslide.jpg")
-blank=np.zeros(img.shape[:2], dtype="uint8")
+blank=np.zeros(img.shape[:2], dtype="uint8") #this blank serves as the basis for a mask later on
 blank2=blank.copy()
-b,g,r= cv.split(img)
-greenthreshold, greenthresh=cv.threshold(g, 200, 255, cv.THRESH_BINARY)
-cv.imshow("image", img)
-cv.imshow("greenthresh", greenthresh)
+b,g,r= cv.split(img) #splitting the image into 3 channels depending on color
+greenthreshold, greenthresh=cv.threshold(g, 200, 255, cv.THRESH_BINARY) #binarizes the green channel
+cv.imshow("image", img) #lets you see what image you're processing
+cv.imshow("greenthresh", greenthresh) #lets you see what the software sees from this point forward
 
 
 
-circles = cv.HoughCircles(greenthresh, cv.HOUGH_GRADIENT,1,20, param1=4,param2=7,minRadius=1,maxRadius=10)
+circles = cv.HoughCircles(greenthresh, cv.HOUGH_GRADIENT,1,20, param1=4,param2=7,minRadius=1,maxRadius=10) #workhorse function of this code. not sure how it works exactly but I'm sure it involves eigenvalues somehow.
 circles = np.uint16(np.around(circles))
 for i in circles[0,:]:
-    # draw the center of the circle
-    # cv.circle(img,(i[0],i[1]),2,(255,0,255),3)
-    # draw the outer circle
     if i[2]<=5:
-        cv.circle(blank,(i[0],i[1]),(i[2]+3),(255,255,255),-1)
+        cv.circle(blank,(i[0],i[1]),(i[2]+3),(255,255,255),-1) #I found that hough transform would usually detect all spots on the slide, but would frequently fit a too-small circle over them. So, I added this conditional to increase the radius of circles where it did that.
     else:
-        cv.circle(blank,(i[0],i[1]),i[2],(255,255,255),-1)
-    # cv.circle(img,(i[0],i[1]),2,(0,0,0),3)
-mask=cv.bitwise_not(blank)
-masked_thresh=cv.bitwise_and(greenthresh, greenthresh, mask=mask)
+        cv.circle(blank,(i[0],i[1]),i[2],(255,255,255),-1) #If the detected circle is big enough, it won't be expanded
+mask=cv.bitwise_not(blank) #reverses the mask after the detected circles have been fit into the mask
+masked_thresh=cv.bitwise_and(greenthresh, greenthresh, mask=mask) #boolean and
 masked_img=cv.bitwise_and(img, img, mask=mask)
 
-def get_passing_big_circles(img):
+def get_passing_big_circles(img): #this part was rough because the higher the radius of detection, the more false positives are detected, but I figured it out. somehow
     blank=np.zeros(img.shape[:2], dtype="uint8")
     b,g,r= cv.split(img)
     greenthreshold, greenthresh=cv.threshold(g, 200, 255, cv.THRESH_BINARY)
     circles = cv.HoughCircles(greenthresh, cv.HOUGH_GRADIENT,1,20, param1=4,param2=7,minRadius=19,maxRadius=22)
-    circles = np.uint16(np.around(circles))
+    circles = np.uint16(np.around(circles)) #the rest of this function relies on how these circles are output into a list. It checks them each one by one to see if each has few enough unthresholded pixels and then returns the ones that don't.
     circles_pass=[]
     for i in circles[0,:]:
         pi=3.14
-        indivblank=cv.circle(blank.copy(), (i[0],i[1]), (i[2]), (255,255,255),-1)
+        indivblank=cv.circle(blank.copy(), (i[0],i[1]), (i[2]), (255,255,255),-1) #copies the blank every loop and fits one mask at a time over the copy.
         area=pi*(i[2]^2)
         indivmasked=cv.bitwise_and(greenthresh.copy(), greenthresh.copy(), mask=indivblank)
         x=img.shape[1]
         y=img.shape[0]
         unthresholded_count=0
-        for l in range(y):
+        for l in range(y): #this part uses iteration over the pixels in the image in both height and width direction
             for m in range(x):
                 pixel_greenthresh=greenthresh[l,m]
                 pixel_mask=indivblank[l,m]
                 if pixel_greenthresh==0 and pixel_mask==255:
                     unthresholded_count+=1
-        if unthresholded_count/area<.1:
-            circles_pass=circles_pass+[i]
+        if unthresholded_count/area<.1: #this part checks if the total number of pixels that are not thresholded in greenthresh but are thresholded in the mask itself is less than 10% of the area of the mask circle.
+            circles_pass=circles_pass+[i] #combines the passing circles into a list. There should only be one, but the fact that I set it up like this means that the output can be checked. If there's more than one, you know the output is unreliable
     for i in circles_pass:
         blank=cv.circle(blank, (i[0],i[1]), (i[2]), (255,255,255),-1)
         mask=cv.bitwise_not(blank)
@@ -70,7 +66,7 @@ def get_number_of_thresholded_pixels(image):
                 unthresholded_pixelnumber+=1
 
     return (thresholded_pixelnumber, unthresholded_pixelnumber)
-    #run this on a thresholded image to get the number of thresholded and unthresholded pixels
+    #run this on a thresholded image to get the number of thresholded and unthresholded pixels. Used for final determination of percent unthresholded.
 
 def get_image_area(image):
     x=image.shape[1]
@@ -85,11 +81,11 @@ def calculate_proportion_thresholded(image):
     percent=(thresholded/area)
     return percent
     #combines input from previous functions to give a decimal representing the proportion of thresholded pixels
-    #change 0 to a 1 to get the number of unthresholded pixels, and the 2 outputs should add up to 1.
+    #change 0 to a 1 in line 79 to get the number of unthresholded pixels, and the 2 outputs should add up to 1. It seemed convenient to have both outputs.
 
 blank3=get_passing_big_circles(img)
 big_mask=cv.bitwise_not(blank3)
-masked_thresh=cv.bitwise_and(masked_thresh, masked_thresh, mask=big_mask)
+masked_thresh=cv.bitwise_and(masked_thresh, masked_thresh, mask=big_mask) #combines the independant outputs of detecting large and small bubbles to avoid interplay between the edits made from fitting a mask to 1.
 print(calculate_proportion_thresholded(masked_thresh))
 cv.imshow("final_thresh", masked_thresh)
 cv.imshow("image", masked_img)
